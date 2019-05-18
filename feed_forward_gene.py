@@ -3,8 +3,8 @@ import random
 
 CONST_SLICE_NUMBER = 2
 FIRST_SLS_ID = 50
-FLOWS = 2
-REPEAT = 5
+FLOWS = 35
+REPEAT = 1
 
 previos_links = list()
 used_sw = set()
@@ -123,17 +123,19 @@ for rep in range(1, REPEAT+1) :
         routs_list = ""
         coma = False
 
-        for j in range(FLOWS) :
-            path_list = create_path(links_list)
-            for path in path_list :
-                if coma :
-                    routs_list += ",\n"
-                route = "\t{\n\t\t\"path\" : " + str(path) +",\n"
-                route += "\t\t\"epsilon\" : 0.01,\n"
-                route += "\t\t\"rho_a\" : " + str(10.0 / (FLOWS*3) * 0.9) + ",\n"
-                route += "\t\t\"b_a\" : 1\n\t}"
-                routs_list += route
-                coma = True
+        path_list = create_path(links_list)
+        index = 0
+        while index < FLOWS :
+            path = path_list[index % len(path_list)]
+            if coma :
+                routs_list += ",\n"
+            route = "\t{\n\t\t\"path\" : " + str(path) +",\n"
+            route += "\t\t\"epsilon\" : 0.01,\n"
+            route += "\t\t\"rho_a\" : " + str(10.0 / FLOWS * 0.9) + ",\n"
+            route += "\t\t\"b_a\" : 1\n\t}"
+            routs_list += route
+            coma = True
+            index += 1
 
         routes = "\t\"routes\" : [\n" + routs_list + "\n\t]\n"
         file.write("\"slice\" : {\n" + rate + priority + routes + "}\n")

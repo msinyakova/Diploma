@@ -371,7 +371,6 @@ class Topology :
 
     def servers_equal_start_time(self, eq_start, sw, routes_in_sw, file) :
         for it in itertools.combinations(eq_start, 2) :
-            print(eq_start)
             self.one_server(routes_in_sw, myTime(it[1][1:]), sw, file, '+')
             file.write(' - ')
             self.one_server(routes_in_sw, myTime(it[0][1:]), sw, file, '-')
@@ -410,6 +409,8 @@ class Topology :
 
 
 #______________________MAIN______________________
+
+total_time_start = time.time()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file', nargs='?', default='input.json')
@@ -514,3 +515,5 @@ print("Time for calculating one file in lp_solver : ", time_lp_solver_finish)
 print("Max number of linear constraints in one file : ", max_file_constraints_number)
 print("Number of linear constraints in general: ", all_constraints_number)
 input_file.close()
+total_time_finish = time.time() - total_time_start
+print("Total time: ", total_time_finish)

@@ -36,6 +36,6 @@ while index < len(InputFiles) :
 	process = subprocess.Popen(args, stdout=output_file)
 	process.wait()
 	output_file.close()
-	index += 19
+	index += 1
 
 	

@@ -9,7 +9,7 @@
 "topology" : {
 	"switches" : [1],
 	"links" : [],
-	"queue" : [51, 50]
+	"queue" : [50, 51]
 },
 "slice" : {
 	"rate" : 10,
