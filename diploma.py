@@ -6,6 +6,7 @@ import subprocess
 import itertools
 import time
 import argparse
+import csv
 
 def rewrite_services(file_from, file_to) :
     for line in file_from :
@@ -31,10 +32,13 @@ class Route :
     def defineDistribution(self, stats, chi_square) :
         sum_f = sum_xf = 0
         f = []
-        for it in stats :
-            f.append(it['value'])
-            sum_f += it['value']
-            sum_xf += it['time'] * it['value']
+        time = 0
+        for st in stats :
+            it = float(st[0])
+            f.append(it)
+            sum_f += it
+            sum_xf += time * it
+            time += 1
         lambda_medium = sum_xf / sum_f
         K = r = 0
         for i in range(len(f)) :
@@ -47,13 +51,14 @@ class Route :
         if (chi_square[freedom_degree] >= K) :
             #print('Poisson distribution with lambda = ', lambda_medium)
             self.rho_a = lambda_medium
-# TODO: как оптимизировать b_a по theta и что считать за sigma_a?
             sigma_a = 0
-            theta = 1
+            theta = 100000
             self.b_a = sigma_a - 1/theta * (math.log(self.eps) + math.log(1 - math.exp(-theta*(self.rate - self.rho_a))))
             #print('rho_a = ', self.rho_a, ' b_a = ', self.b_a)
         else :
-            print('Not poisson distribution')       
+            print('Not poisson distribution')
+            self.rho_a = 0.67
+            self.b_a = 1
 
 
 class Slices :
@@ -153,7 +158,6 @@ class Topology :
                 break
         self.rho_s = slice_rate
         self.b_s = b_s_
-        #print('rho_s = ', self.rho_s, ' b_s = ', self.b_s)
 
     def formRouteTime(self, route) :
         first_tree = Tree(myTime('0'))
@@ -391,7 +395,6 @@ class Topology :
         file.write('t'+task[pos-1].elem+' <= u;\n'+'u <= t'+task[pos].elem+';\n\n')
         file.write('F'+str(route.number)+'s'+str(route.path[len(route.path)-1])+'t0 <= F'+str(route.number)+'s0u;\n')
         self.lengthLP += 2
-#TODO написать Позиция и монотонность для u
         file.write('\n//arrival delay \n')
         for time in task :
             elem1 = elem2 = '0'
@@ -438,18 +441,19 @@ i = 0
 for curr in slice_info['routes'] :
     routes_list.append(Route(curr['path'], curr['epsilon'], slice_rate, i + 1))
     if 'statistic' in curr :
-        routes_list[i].defineDistribution(curr['statistic'], web['chi_square'])
+        with open(curr['statistic'], 'r') as f:
+            reader = csv.reader(f)
+            stat_list = list(reader)
+        routes_list[i].defineDistribution(stat_list, web['chi_square'])
     elif 'rho_a' in curr and 'b_a' in curr :
         routes_list[i].rho_a = curr['rho_a']
         routes_list[i].b_a = curr['b_a']
-        #print('rho_a = ', routes_list[i].rho_a, ' b_a = ', routes_list[i].b_a)
     else :
         print('Not enof information about route ', i + 1)
         exit(0)
     i += 1
 
 time_gene_start = time.time()
-#print('start creating time')
 route_time = dict()
 time_routes_switches = dict()
 for i in range(len(routes_list)) :
@@ -459,7 +463,6 @@ for i in range(len(routes_list)) :
     time_routes_switches[i] = topo.formSwitchesTime(main_time, routes_list)
     #формируем список возможных задач для вычисляеого потока
     route_time[i] = topo.timeConstraints(main_time)
-    #print('finish for route ', i)
 time_gene_finish = time.time() - time_gene_start
 print("Time for generation constraints = ", time_gene_finish)
 
@@ -506,7 +509,6 @@ for key in route_time.keys() :
             max_file_constraints_number = max(max_file_constraints_number, topo.lengthLP)
             topo.lengthLP = based_constraints_number
         topo.lengthLP = 0
-    #print("For flow ", routes_list[key].number, " max delay = ", flow_max_delay)
     if flow_max_delay > max_delay :
         max_delay = flow_max_delay
 print("Max delay in slice - ", max_delay)
