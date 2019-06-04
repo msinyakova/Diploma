@@ -514,14 +514,14 @@ for key in route_time.keys() :
 
             #отправляем на вычислени в lp_solver
             time_lp_solver_start = time.time()
-            args = ["./../lp_solver/lp_solve", file_lp]
+            args = ["./lp_solver/lp_solve", file_lp]
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
             data = process.communicate()
             time_lp_solver_finish = max(time_lp_solver_finish, time.time() - time_lp_solver_start)
 
             time_read_proc1 = time.time()
             words = data[0].split()
-            if len(words[0]) <= 4 :
+            if len(words) <= 4 :
                 print('flow = ', key,' : ', data[0])
                 continue
             if float(words[4]) > flow_max_delay :
@@ -531,13 +531,13 @@ for key in route_time.keys() :
             topo.lengthLP = based_constraints_number
             time_read_proc = time.time() - time_read_proc1
             #print("Time after work:", time_read_proc)
-            break
+            #break
         topo.lengthLP = 0
-        break
+        #break
     if flow_max_delay > max_delay :
         max_delay = flow_max_delay
-    break
-files_number = len(route_time) * len(route_time[1]) * (len(route_time[1][0])-1)
+    #break
+#files_number = len(route_time) * len(route_time[1]) * (len(route_time[1][0])-1)
 print("Max delay in slice - ", max_delay)
 print("Number of files in linear programming : ", files_number)
 print("Time for calculating one file in lp_solver : ", time_lp_solver_finish)
