@@ -1,0 +1,2 @@
+input/test_sw40_f50.json
+Time for generation constraints =  4.390964508056641

@@ -1,0 +1,2 @@
+input/test_sw37_f43.json
+Time for generation constraints =  3.5415501594543457

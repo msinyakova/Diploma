@@ -1,0 +1,8 @@
+input/test_sw38_f20.json
+Time for generation constraints =  0.6573338508605957
+Max delay in slice -  19.03448276
+Number of files in linear programming :  760
+Time for calculating one file in lp_solver :  4.282496690750122
+Max number of linear constraints in one file :  17977
+Number of linear constraints in general:  13662520
+Total time:  1852.4725019931793

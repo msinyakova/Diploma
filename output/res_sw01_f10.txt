@@ -1,0 +1,8 @@
+input/test_sw01_f10.json
+Time for generation constraints =  0.001140594482421875
+Max delay in slice -  5.36842105
+Number of files in linear programming :  10
+Time for calculating one file in lp_solver :  0.0027480125427246094
+Max number of linear constraints in one file :  56
+Number of linear constraints in general:  560
+Total time:  0.04732513427734375

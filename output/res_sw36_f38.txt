@@ -1,0 +1,2 @@
+input/test_sw36_f38.json
+Time for generation constraints =  2.5853729248046875
