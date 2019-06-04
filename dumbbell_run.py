@@ -18,10 +18,10 @@ while index < len(InputFiles) :
 	file = str(InputFiles[index])
 	print(file)
 	args = ["python3", "diploma.py", file, step.size]
-	number = file[12:len(file)-5]
-	output_name = "ff_output/res" + number + ".txt"
+	number = file[18:len(file)-5]
+	output_name = "dumbbell_output/res" + number + ".txt"
 	output_file = open(output_name, "w")
 	process = subprocess.Popen(args, stdout=output_file)
 	process.wait()
 	output_file.close()
-	index += 4
+	index += 5

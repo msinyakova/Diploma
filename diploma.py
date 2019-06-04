@@ -279,38 +279,42 @@ class Topology :
         self.buildTimeConstraints(constraints, pos)
         return self.route_time_constraints
 
-    def createLP(self, task, routes_dict, file, routes_list) :
-        file.write('//time\n')
-        topo.write_time(task, file)
+    def createLP(self, task, routes_dict, routes_list) :
+        help_str = '//time\n'
+        help_str += topo.write_time(task)
         for route in routes_list :
-            file.write("\n//flow "+str(route.number)+'\n')
-            topo.generate_constraints(task, routes_dict, file, route)
-            file.write("\n//arrival "+str(route.number)+"\n")
-            topo.generate_arrival(task, routes_dict, file, route)
-        file.write("\n//servers\n")
-        topo.generate_servers(task, routes_list, file)
+            help_str += ("\n//flow "+str(route.number)+'\n')
+            help_str += topo.generate_constraints(task, routes_dict, route)
+            help_str += ("\n//arrival "+str(route.number)+"\n")
+            help_str += topo.generate_arrival(task, routes_dict, route)
+        help_str += ("\n//servers\n")
+        help_str += topo.generate_servers(task, routes_list)
+        return help_str
 
     def expression_sign(self, task, i):
         if task[i][0] == task[i + 1][0] :
             return ' = '
         return ' <= '
 
-    def write_time(self, task, file) :
+    def write_time(self, task) :
+        help_str = ""
         for i in range(len(task)-1) :
-            file.write('t'+task[i].elem + self.expression_sign(task, i)+'t'+task[i+1].elem+ ';\n')
+            help_str += ('t'+task[i].elem + self.expression_sign(task, i)+'t'+task[i+1].elem+ ';\n')
             self.lengthLP += 1
+        return help_str
 
-    def generate_constraints(self, task, routes_dict, file, route) :
+    def generate_constraints(self, task, routes_dict, route) :
+        help_str = ""
         path = route.number
         for sw in routes_dict[path] :
             time = my_sort(routes_dict[path][sw], task) if sw != '0' else task
-            file.write('//sw '+str(sw)+'\n')
+            help_str += ('//sw '+str(sw)+'\n')
             pos = 0
             for i in range(len(time)-1) :
                 #non_decreasing functions
-                file.write('F'+str(path)+'s'+sw+'t'+time[i].elem)
-                file.write(self.expression_sign(task, i))
-                file.write('F'+str(path)+'s'+sw+'t'+time[i+1].elem+';\n')
+                help_str += ('F'+str(path)+'s'+sw+'t'+time[i].elem)
+                help_str += (self.expression_sign(task, i))
+                help_str += ('F'+str(path)+'s'+sw+'t'+time[i+1].elem+';\n')
                 self.lengthLP += 1
                 if sw == '0' :
                     continue
@@ -318,28 +322,31 @@ class Topology :
                 if sw == time[i][0] :
                     previos_pos = route.path.index(int(sw))
                     previos_sw = '0' if previos_pos == 0 else str(route.path[previos_pos - 1])
-                    file.write('F'+str(path)+'s'+previos_sw+'t'+time[i].elem+' = ')
-                    file.write('F'+str(path)+'s'+sw+'t'+time[i].elem+';\n')
+                    help_str += ('F'+str(path)+'s'+previos_sw+'t'+time[i].elem+' = ')
+                    help_str += ('F'+str(path)+'s'+sw+'t'+time[i].elem+';\n')
                     self.lengthLP += 1
                 #flow_contains
                 else :
-                    file.write('F'+str(path)+'s'+sw+'t'+time[i].elem+' <= ')
-                    file.write('F'+str(path)+'s0t'+time[i].elem+';\n')
+                    help_str += ('F'+str(path)+'s'+sw+'t'+time[i].elem+' <= ')
+                    help_str += ('F'+str(path)+'s0t'+time[i].elem+';\n')
                     self.lengthLP += 1
                 pos = i
             if sw != '0' and (pos + 1) < len(time):
-                file.write('F'+str(path)+'s'+sw+'t'+time[pos+1].elem+' <= ')
-                file.write('F'+str(path)+'s0t'+time[pos+1].elem+';\n')
+                help_str += ('F'+str(path)+'s'+sw+'t'+time[pos+1].elem+' <= ')
+                help_str += ('F'+str(path)+'s0t'+time[pos+1].elem+';\n')
                 self.lengthLP += 1
+        return help_str
 
-    def generate_arrival(self, task, routes_dict, file, route) :
+    def generate_arrival(self, task, routes_dict, route) :
+        help_str = ""
         path = route.number
         for it in itertools.combinations(reversed(task), 2) :
             if it[0] == it[1] :
                 continue
-            file.write('F'+str(path)+'s0t'+it[0].elem+' - F'+str(path)+'s0t'+it[1].elem)
-            file.write(' <= '+str(route.rho_a)+' * t'+it[0].elem+' - '+str(route.rho_a)+' * t'+it[1].elem+' + '+str(route.b_a)+';\n')
+            help_str += ('F'+str(path)+'s0t'+it[0].elem+' - F'+str(path)+'s0t'+it[1].elem)
+            help_str += (' <= '+str(route.rho_a)+' * t'+it[0].elem+' - '+str(route.rho_a)+' * t'+it[1].elem+' + '+str(route.b_a)+';\n')
             self.lengthLP += 1
+        return help_str
 
     def choose_routes(self, sw, routes_list) :
         routes_in_sw = list()
@@ -348,7 +355,8 @@ class Topology :
                 routes_in_sw.append(route.number)
         return routes_in_sw
 
-    def generate_servers(self, task, routes_list, file) :
+    def generate_servers(self, task, routes_list) :
+        help_str = ""
         for sw in self.switches :
             eq_start = list()
             previos = 0
@@ -359,11 +367,11 @@ class Topology :
                 if time[0] != str(sw) :
                     continue
                 t = myTime('0') if time[1:] == '' else myTime(time[1:])
-                self.one_server(routes_in_sw, t, sw, file, '+')
-                file.write(' - ')
-                self.one_server(routes_in_sw, time, sw, file, '-')
-                file.write(' >= '+str(self.rho_s)+' * t'+t.elem+' - ')
-                file.write(str(self.rho_s)+' * t'+time.elem+' - '+str(self.b_s)+';\n')
+                help_str += self.one_server(routes_in_sw, t, sw, '+')
+                help_str += ' - '
+                help_str += self.one_server(routes_in_sw, time, sw, '-')
+                help_str += (' >= '+str(self.rho_s)+' * t'+t.elem+' - ')
+                help_str += (str(self.rho_s)+' * t'+time.elem+' - '+str(self.b_s)+';\n')
                 self.lengthLP += 1
                 if eq_start == list() :
                     eq_start.append(time)
@@ -371,24 +379,29 @@ class Topology :
                 elif task.index(time) - previos <= 1:
                     eq_start.append(time)
                     previos = task.index(time)
-            self.servers_equal_start_time(eq_start, sw, routes_in_sw, file)
+            help_str += self.servers_equal_start_time(eq_start, sw, routes_in_sw)
+        return help_str
 
-    def servers_equal_start_time(self, eq_start, sw, routes_in_sw, file) :
+    def servers_equal_start_time(self, eq_start, sw, routes_in_sw) :
+        help_str = ""
         for it in itertools.combinations(eq_start, 2) :
-            self.one_server(routes_in_sw, myTime(it[1][1:]), sw, file, '+')
-            file.write(' - ')
-            self.one_server(routes_in_sw, myTime(it[0][1:]), sw, file, '-')
-            file.write(' >= '+str(self.rho_s)+' * t'+it[1][1:]+' - ')
-            file.write(str(self.rho_s)+' * t'+it[0][1:]+' - '+str(self.b_s)+';\n')
+            help_str += self.one_server(routes_in_sw, myTime(it[1][1:]), sw, '+')
+            help_str += ' - '
+            help_str += self.one_server(routes_in_sw, myTime(it[0][1:]), sw, '-')
+            help_str += (' >= '+str(self.rho_s)+' * t'+it[1][1:]+' - ')
+            help_str += (str(self.rho_s)+' * t'+it[0][1:]+' - '+str(self.b_s)+';\n')
             self.lengthLP += 1
+        return help_str
 
-    def one_server(self, routes_in_sw, time, sw, file_name, elem) :
+    def one_server(self, routes_in_sw, time, sw, elem) :
+        help_str = ""
         flag = False
         for route in routes_in_sw :
             if flag : 
-                file_name.write(' '+elem+' ')
-            file_name.write('F'+str(route)+'s'+str(sw)+'t'+time.elem)
+                help_str += (' '+elem+' ')
+            help_str += ('F'+str(route)+'s'+str(sw)+'t'+time.elem)
             flag = True
+        return help_str
 
     def writeDelayConstraints(self, task, pos, route, file) :
         file.write('max: t0-u;\n\n')
@@ -422,6 +435,7 @@ input_param = parser.parse_args()
 print(input_param.file)
 input_file = open(str(input_param.file), "r")
 web = json.load(input_file)
+help_str = ""
 
 tp_help = web['topology']
 topo = Topology(tp_help['switches'],tp_help['links'], tp_help['queue'])
@@ -454,6 +468,8 @@ for curr in slice_info['routes'] :
     i += 1
 
 time_gene_start = time.time()
+#print("Time before generation: ", time_gene_start - total_time_start)
+
 route_time = dict()
 time_routes_switches = dict()
 for i in range(len(routes_list)) :
@@ -470,35 +486,40 @@ all_constraints_number = 0
 max_file_constraints_number = 0
 files_number = 0
 max_delay = 0.0
+time_lp_solver_finish = 0.0
 for key in route_time.keys() :
     flow_max_delay = 0.0
     #для одного и того же потока перебираем варианты задач
     for task in route_time[key] :
+        time_create_1 = time.time()
         #создаем все неравенства без учета положения задержки для одной задачи
-        help_file = "LP/help"+input_param.pos+".txt"
-        service_file = open(help_file, "w")
-        topo.createLP(task, time_routes_switches[key], service_file, routes_list)
-        service_file.close()
+        help_str = topo.createLP(task, time_routes_switches[key], routes_list)
         #print(task)
         based_constraints_number = topo.lengthLP
+        time_create = time.time() - time_create_1
+        #print("Time for creating LP:", time_create)
         #перебираем позицию для задержки
         for i in range(1, len(task)) :
+            time_write1 = time.time()
             file_lp = "LP/lp_file"+input_param.pos+".txt"
             LP_file = open(file_lp, "w")
             files_number += 1
             #вписываем в файл всю информацию о задержке
             topo.writeDelayConstraints(task, i, routes_list[key], LP_file)
-            service_file = open(help_file, "r")
             #переписываем остальные неравенства для данной задачи
-            rewrite_services(service_file, LP_file)
-            service_file.close()
+            LP_file.write(help_str)
             LP_file.close()
+            time_write = time.time() - time_write1
+            #print("Time for write LP_file:", time_write)
+
             #отправляем на вычислени в lp_solver
             time_lp_solver_start = time.time()
             args = ["./../lp_solver/lp_solve", file_lp]
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
-            time_lp_solver_finish = time.time() - time_lp_solver_start
             data = process.communicate()
+            time_lp_solver_finish = max(time_lp_solver_finish, time.time() - time_lp_solver_start)
+
+            time_read_proc1 = time.time()
             words = data[0].split()
             if len(words[0]) <= 4 :
                 print('flow = ', key,' : ', data[0])
@@ -508,9 +529,15 @@ for key in route_time.keys() :
             all_constraints_number += topo.lengthLP
             max_file_constraints_number = max(max_file_constraints_number, topo.lengthLP)
             topo.lengthLP = based_constraints_number
+            time_read_proc = time.time() - time_read_proc1
+            #print("Time after work:", time_read_proc)
+            break
         topo.lengthLP = 0
+        break
     if flow_max_delay > max_delay :
         max_delay = flow_max_delay
+    break
+files_number = len(route_time) * len(route_time[1]) * (len(route_time[1][0])-1)
 print("Max delay in slice - ", max_delay)
 print("Number of files in linear programming : ", files_number)
 print("Time for calculating one file in lp_solver : ", time_lp_solver_finish)

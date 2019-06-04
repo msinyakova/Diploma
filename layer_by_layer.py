@@ -6,27 +6,36 @@ import glob
 CONST_SLICE_NUMBER = 2
 FIRST_SLS_ID = 50
 FLOWS = 50
-ITERATIONS = 63
-
-previos_links = list()
-layers = [frozenset([1,2,3,4]), frozenset([5,6,7]), frozenset([8,9,10]), frozenset([11,12,13])]
+ITERATIONS = 30
 last_layer_st = 11
+last_layer_fn = 13
 numer_layers = 4
+layers = [frozenset([1,2,3,4]), frozenset([5,6,7]), frozenset([8,9,10]), frozenset([11,12,13])]
 
 def choose_layer(sw):
     for i in range(0,len(layers)):
         if sw in layers[i]:
             return i
 
+def previos_lk(sw, links):
+    for lk in links:
+        if lk[1] == sw:
+            return True
+    return False
+
 def start_topo():
     links = list()
     for sw_1 in range(1,last_layer_st) :
         layer_st = choose_layer(sw_1)
-        set_fn = set()
-        for i in range(layer_st+1, numer_layers):
-            set_fn.update(layers[i])
-        sw_2 = random.sample(set_fn, 1)[0]
+        sw_2 = random.sample(layers[layer_st+1], 1)[0]
         links.append([sw_1, sw_2])
+        if (not previos_lk(sw_1, links)) and (sw_1 not in layers[0]) :
+            sw_prev = random.sample(layers[layer_st-1],1)[0]
+            links.append([sw_prev, sw_1])
+    for sw_2 in range(last_layer_st, last_layer_fn+1):
+        if not previos_lk(sw_2, links) :
+            sw_prev = random.sample(layers[numer_layers-2],1)[0]
+            links.append([sw_prev, sw_2])
     return links
 
 def create_links(links):
@@ -35,10 +44,7 @@ def create_links(links):
         layer_st = random.randint(0,numer_layers-2)
         lk1 = random.sample(layers[layer_st],1)[0]
         link = [lk1]
-        set_fn = set()
-        for i in range(layer_st+1, numer_layers):
-            set_fn.update(layers[i])
-        lk2 = random.sample(set_fn, 1)[0]
+        lk2 = random.sample(layers[layer_st+1], 1)[0]
         link.append(lk2)
         if link not in links:
             break
@@ -46,16 +52,17 @@ def create_links(links):
 
 def add_path(links) :
     path = []
-    layer_st = random.randint(0,numer_layers-2)
+    layer_st = 0
     sw = random.sample(layers[layer_st],1)[0]
-    leng = random.randint(2, numer_layers)
-    while choose_layer(sw) < (numer_layers-1) and len(path) < leng :
+    while True:
         path.append(sw)
         set_lk = set()
         for lk in links:
             if lk[0] == sw:
                 set_lk.add(lk[1])
         sw = random.sample(set_lk, 1)[0]
+        if choose_layer(sw) == (numer_layers-1) :
+            break
     path.append(sw)
     return path
 
@@ -79,10 +86,11 @@ def create_path(links) :
                 path_list.remove(elem)
     return path_list
 
-files = glob.glob('ff_input/*')
+files = glob.glob('lbl_input/*')
 for f in files:
     os.remove(f)
 
+previos_links = list()
 previos_links = start_topo()
 base_path = create_path(previos_links)
 print("base_l:", previos_links, "\nbase_p:", base_path)
@@ -90,7 +98,7 @@ first_topo = True
 while len(previos_links) < ITERATIONS :
     bond = len(previos_links) if first_topo else len(previos_links) + 1
     bond_str = str(bond).zfill(2)
-    file_name = "ff_input/test_lk" + bond_str +".json"
+    file_name = "lbl_input/test_lk" + bond_str +".json"
     file = open(file_name, "w")
     file.write('{\n')
 

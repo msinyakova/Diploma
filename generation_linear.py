@@ -1,11 +1,17 @@
 import json
 import math
 import random
+import os
+import glob
 
 CONST_FLOW_NUMBER = 10
 CONST_SWITCH_NUMBER = 10
 CONST_SLICE_NUMBER = 2
 FIRST_SLS_ID = 50
+
+files = glob.glob('input/*')
+for f in files:
+    os.remove(f)
 
 #zero_number = len(str(CONST_FLOW_NUMBER * CONST_SWITCH_NUMBER))
 #number = 1
