@@ -1,0 +1,8 @@
+ff_input/test_lk31.json
+Time for generation constraints =  0.4877190589904785
+Max delay in slice -  12.54708816
+Number of files in linear programming :  1105
+Time for calculating one file in lp_solver :  2.528794527053833
+Max number of linear constraints in one file :  19424
+Number of linear constraints in general:  16327415
+Total time:  1550.093919992447

@@ -1,0 +1,12 @@
+ff_input/test_lk59.json
+Time for generation constraints =  6.393834352493286
+flow =  4  :  b'lp_solve failed\n'
+flow =  4  :  b'lp_solve failed\n'
+flow =  4  :  b'lp_solve failed\n'
+flow =  5  :  b'lp_solve failed\n'
+Max delay in slice -  12.52391144
+Number of files in linear programming :  3738
+Time for calculating one file in lp_solver :  5678.052495479584
+Max number of linear constraints in one file :  148024
+Number of linear constraints in general:  548737874
+Total time:  133402.67602539062

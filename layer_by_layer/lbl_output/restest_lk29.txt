@@ -1,0 +1,9 @@
+lbl_input/test_lk29.json
+Time for generation constraints =  1.4590568542480469
+flow =  16  :  b'This problem is unbounded\n'
+Max delay in slice -  9.25016861
+Number of files in linear programming :  2300
+Time for calculating one file in lp_solver :  130.60552072525024
+Max number of linear constraints in one file :  58843
+Number of linear constraints in general:  135223655
+Total time:  54122.244368076324

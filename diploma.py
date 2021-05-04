@@ -7,6 +7,7 @@ import itertools
 import time
 import argparse
 import csv
+import objects
 
 
 def rewrite_services(file_from, file_to):
@@ -66,16 +67,6 @@ class Route:
             print('Not poisson distribution')
             self.rho_a = 0.67
             self.b_a = 1
-
-
-class Slices:
-    def __init__(self, id_, speed, main_rate):
-        self.sls_id = id_
-        self.rate = speed
-        self.bandwidth = main_rate
-
-    def delay(self):
-        return self.rate / self.bandwidth
 
 
 class MyTime:
