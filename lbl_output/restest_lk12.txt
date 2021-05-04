@@ -1,8 +1,0 @@
-lbl_input/test_lk12.json
-Time for generation constraints =  0.20258688926696777
-Max delay in slice -  9.22680412
-Number of files in linear programming :  340
-Time for calculating one file in lp_solver :  0.1678917407989502
-Max number of linear constraints in one file :  2692
-Number of linear constraints in general:  804772
-Total time:  40.910354137420654

@@ -1,8 +1,0 @@
-dumbbell_input/test_sw18.json
-Time for generation constraints =  8.817706108093262
-Max delay in slice -  23.31076923
-Number of files in linear programming :  3810
-Time for calculating one file in lp_solver :  188.5115602016449
-Max number of linear constraints in one file :  258085
-Number of linear constraints in general:  983303850
-Total time:  398917.20885658264
